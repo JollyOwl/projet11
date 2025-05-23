@@ -26,13 +26,18 @@ paths:
         - application/json
       responses:
         '200':
-          description: Login Successfully
+          description: Login successful
           schema:
-            $ref: '#/definitions/LoginResponse'
+            $ref: '#/definitions/StandardResponse'
         '400':
           description: Invalid Fields
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '500':
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
   /user/signup:
     post:
       tags:
@@ -50,13 +55,18 @@ paths:
         - application/json
       responses:
         '200':
-          description: Signup Successfully
+          description: Signup successful
           schema:
-            $ref: '#/definitions/ApiResponse'
+            $ref: '#/definitions/StandardResponse'
         '400':
           description: Invalid Fields
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '500':
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
   /user/profile:
     get:
       security:
@@ -65,17 +75,20 @@ paths:
         - User Module
       summary: User Profile API
       description: API for fetching a user profile
-      #produces:
-       # - application/json
       responses:
         '200':
-          description: User profile retrieved successully
+          description: User profile retrieved successfully
           schema:
-            $ref: '#/definitions/ApiResponse'
+            $ref: '#/definitions/StandardResponse'
         '400':
           description: Invalid Fields
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '500':
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
     put:
       security:
         - Bearer: []
@@ -94,13 +107,18 @@ paths:
         - application/json
       responses:
         '200':
-          description: User profile retrieved successully
+          description: User profile updated successfully
           schema:
-            $ref: '#/definitions/ApiResponse'
+            $ref: '#/definitions/StandardResponse'
         '400':
           description: Invalid Fields
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '500':
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
   /transactions:
     get:
       security:
@@ -122,13 +140,53 @@ paths:
         '200':
           description: Transactions retrieved successfully
           schema:
-            $ref: '#/definitions/TransactionsResponse'
+            $ref: '#/definitions/StandardResponse'
         '400':
           description: Invalid date format
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '401':
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '500':
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+    post:
+      security:
+        - Bearer: []
+      tags:
+        - Transaction Module
+      summary: Create new transaction
+      description: Create a new transaction record
+      parameters:
+        - in: body
+          name: body
+          description: Transaction creation payload
+          required: true
+          schema:
+            $ref: '#/definitions/Transaction'
+      produces:
+        - application/json
+      responses:
+        '201':
+          description: Transaction created successfully
+          schema:
+            $ref: '#/definitions/StandardResponse'
+        '400':
+          description: Invalid transaction data
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
   /transactions/{transactionId}:
     get:
@@ -150,13 +208,19 @@ paths:
         '200':
           description: Transaction details retrieved successfully
           schema:
-            $ref: '#/definitions/TransactionDetail'
+            $ref: '#/definitions/StandardResponse'
         '404':
           description: Transaction not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '401':
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '500':
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
     patch:
       security:
@@ -164,7 +228,7 @@ paths:
       tags:
         - Transaction Module
       summary: Update transaction
-      description: Update information about a specific transaction
+      description: Update specific fields of a transaction
       parameters:
         - in: path
           name: transactionId
@@ -183,15 +247,23 @@ paths:
         '200':
           description: Transaction updated successfully
           schema:
-            $ref: '#/definitions/ApiResponse'
+            $ref: '#/definitions/StandardResponse'
         '400':
           description: Invalid update data
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '404':
           description: Transaction not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '401':
           description: Unauthorized
+          schema:
+            $ref: '#/definitions/ErrorResponse'
         '500':
           description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
 
 securityDefinitions:
   Bearer:
@@ -203,65 +275,61 @@ definitions:
     properties:
       email:
         type: string
-        description: user email
       password:
         type: string
-        description: user password
       firstName:
         type: string
-        description: user first name
       lastName:
         type: string
-        description: user last name
       userName:
         type: string
-        description: user public name
+
   Login:
     properties:
       email:
         type: string
-        description: user email
       password:
         type: string
-        description: user password
-  ApiResponse:
-    type: object
-    properties:
-      status:
-        type: integer
-      message:
-        type: string
-      body:
-        type: object
-        properties:
-          id:
-            type: string
-          email:
-            type: string
-  LoginResponse:
-    type: object
-    properties:
-      token:
-        type: string
+
   UserProfile:
     type: object
     properties:
       userName:
         type: string
-  TransactionsResponse:
+
+  TransactionUpdate:
     type: object
     properties:
-      status:
-        type: integer
-      message:
+      title:
         type: string
-      body:
-        type: object
-        properties:
-          accounts:
-            type: array
-            items:
-              $ref: '#/definitions/AccountTransactions'
+      category:
+        type: string
+        enum: [Food, Transport, Shopping, Entertainment, Bills, Health, Other]
+      notes:
+        type: string
+
+  Transaction:
+    type: object
+    properties:
+      id:
+        type: string
+      date:
+        type: string
+        format: date-time
+      title:
+        type: string
+      amount:
+        type: number
+      balance:
+        type: number
+      type:
+        type: string
+        enum: [En ligne, Retrait distributeur, Virement, Paiement]
+      category:
+        type: string
+        enum: [Food, Transport, Shopping, Entertainment, Bills, Health, Other]
+      notes:
+        type: string
 
   AccountTransactions:
     type: object
@@ -275,51 +343,22 @@ definitions:
         items:
           $ref: '#/definitions/Transaction'
 
-  Transaction:
-    type: object
-    properties:
-      id:
-        type: string
-      date:
-        type: string
-        format: date-time
-      title:
-        type: string
-        description: Transaction title
-      amount:
-        type: number
-      balance:
-        type: number
-        description: Account balance after this transaction
-      type:
-        type: string
-        enum: [En ligne, Retrait distributeur, Virement, Paiement]
-        description: General transaction type
-      category:
-        type: string
-        enum: [Food, Transport, Shopping, Entertainment, Bills, Health, Other]
-        description: Expense category
-      notes:
-        type: string
-        description: Optional notes for the transaction
-
-  TransactionDetail:
+  StandardResponse:
     type: object
     properties:
       status:
         type: integer
       message:
         type: string
-      body:
-        $ref: '#/definitions/Transaction'
+      data:
+        type: object
 
-  TransactionUpdate:
+  ErrorResponse:
     type: object
     properties:
-      title:
+      status:
+        type: integer
+      error:
         type: string
-      category:
-        type: string
-        enum: [Food, Transport, Shopping, Entertainment, Bills, Health, Other]
-      notes:
+      message:
         type: string
