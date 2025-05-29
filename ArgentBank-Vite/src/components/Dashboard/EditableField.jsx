@@ -1,0 +1,1 @@
+// Subitem composing transactionDetails, editable as a sleect or an input
