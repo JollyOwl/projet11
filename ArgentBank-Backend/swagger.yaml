@@ -119,34 +119,34 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResponse'
 
-  /transactions:
+  /user/accounts:
     get:
       security:
         - Bearer: []
       tags:
-        - Transaction Module
-      summary: Get monthly transactions
-      description: Get all transactions for the current month, grouped by account
-      parameters:
-        - in: query
-          name: month
-          type: string
-          format: date
-          description: Month to get transactions for (YYYY-MM format)
-          required: false
+        - User Module
+      summary: Get User Accounts
+      description: API for fetching all bank accounts belonging to the authenticated user
       produces:
         - application/json
       responses:
         '200':
-          description: Transactions retrieved successfully
+          description: User accounts retrieved successfully
           schema:
-            $ref: '#/definitions/StandardResponse'
-        '400':
-          description: Invalid date format
-          schema:
-            $ref: '#/definitions/ErrorResponse'
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              message:
+                type: string
+                example: "User accounts retrieved successfully"
+              data:
+                type: array
+                items:
+                  $ref: '#/definitions/Account'
         '401':
-          description: Unauthorized
+          description: Unauthorized - Invalid or missing token
           schema:
             $ref: '#/definitions/ErrorResponse'
         '500':
@@ -154,49 +154,88 @@ paths:
           schema:
             $ref: '#/definitions/ErrorResponse'
 
-    post:
-      security:
-        - Bearer: []
-      tags:
-        - Transaction Module
-      summary: Create new transaction
-      description: Create a new transaction record
-      parameters:
-        - in: body
-          name: body
-          description: Transaction creation payload
-          required: true
-          schema:
-            $ref: '#/definitions/Transaction'
-      produces:
-        - application/json
-      responses:
-        '201':
-          description: Transaction created successfully
-          schema:
-            $ref: '#/definitions/StandardResponse'
-        '400':
-          description: Invalid transaction data
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-        '401':
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-        '500':
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-
-  /transactions/{transactionId}:
+  /account/{accountId}/transactions:
     get:
       security:
         - Bearer: []
       tags:
         - Transaction Module
-      summary: Get transaction details
-      description: Get detailed information about a specific transaction
+      summary: Get monthly transactions by account
+      description: Get all transactions for a specific account for the current month, filtered by user authentication
       parameters:
+        - in: path
+          name: accountId
+          type: string
+          required: true
+          description: ID of the bank account
+        - in: query
+          name: month
+          type: string
+          format: date
+          description: Month to get transactions for (YYYY-MM format). Defaults to current month if not specified
+          required: false 
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Account transactions retrieved successfully
+          schema:
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              message:
+                type: string
+                example: "Transactions retrieved successfully"
+              data:
+                type: object
+                properties:
+                  accountId:
+                    type: string
+                  accountName:
+                    type: string
+                  currentBalance:
+                    type: number
+                  transactions:
+                    type: array
+                    items:
+                      $ref: '#/definitions/Transaction'
+        '400':
+          description: Invalid account ID or date format
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid or missing token
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: Forbidden - Account does not belong to authenticated user
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Account not found
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '500':
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+
+  /account/{accountId}/transactions/{transactionId}:
+    get:
+      security:
+        - Bearer: []
+      tags:
+        - Transaction Module
+      summary: Get specific transaction details
+      description: Get detailed information about a specific transaction for a specific account, with user authentication verification
+      parameters:
+        - in: path
+          name: accountId
+          type: string
+          required: true
+          description: ID of the bank account
         - in: path
           name: transactionId
           type: string
@@ -208,13 +247,30 @@ paths:
         '200':
           description: Transaction details retrieved successfully
           schema:
-            $ref: '#/definitions/StandardResponse'
-        '404':
-          description: Transaction not found
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              message:
+                type: string
+                example: "Transaction details retrieved successfully"
+              data:
+                $ref: '#/definitions/TransactionDetail'
+        '400':
+          description: Invalid account ID or transaction ID
           schema:
             $ref: '#/definitions/ErrorResponse'
         '401':
-          description: Unauthorized
+          description: Unauthorized - Invalid or missing token
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: Forbidden - Account or transaction does not belong to authenticated user
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Transaction or account not found
           schema:
             $ref: '#/definitions/ErrorResponse'
         '500':
@@ -227,9 +283,14 @@ paths:
         - Bearer: []
       tags:
         - Transaction Module
-      summary: Update transaction
-      description: Update specific fields of a transaction
+      summary: Update transaction details
+      description: Update categorie & notes
       parameters:
+        - in: path
+          name: accountId
+          type: string
+          required: true
+          description: ID of the bank account
         - in: path
           name: transactionId
           type: string
@@ -247,17 +308,30 @@ paths:
         '200':
           description: Transaction updated successfully
           schema:
-            $ref: '#/definitions/StandardResponse'
+            type: object
+            properties:
+              status:
+                type: integer
+                example: 200
+              message:
+                type: string
+                example: "Transaction updated successfully"
+              data:
+                $ref: '#/definitions/TransactionDetail'
         '400':
-          description: Invalid update data
-          schema:
-            $ref: '#/definitions/ErrorResponse'
-        '404':
-          description: Transaction not found
+          description: Invalid account ID, transaction ID, or update data
           schema:
             $ref: '#/definitions/ErrorResponse'
         '401':
-          description: Unauthorized
+          description: Unauthorized - Invalid or missing token
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '403':
+          description: Forbidden - Account or transaction does not belong to authenticated user
+          schema:
+            $ref: '#/definitions/ErrorResponse'
+        '404':
+          description: Transaction or account not found
           schema:
             $ref: '#/definitions/ErrorResponse'
         '500':
@@ -331,17 +405,83 @@ definitions:
       notes:
         type: string
 
+  TransactionDetail:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Unique transaction identifier
+      accountId:
+        type: string
+        description: Account ID this transaction belongs to
+      date:
+        type: string
+        format: date-time
+        description: Transaction date and time
+      title:
+        type: string
+        description: Transaction title/description
+      amount:
+        type: number
+        description: Transaction amount (positive for credits, negative for debits)
+      balance:
+        type: number
+        description: Account balance after this transaction
+      type:
+        type: string
+        enum: [En ligne, Retrait distributeur, Virement, Paiement]
+        description: Type of transaction
+      category:
+        type: string
+        enum: [Food, Transport, Shopping, Entertainment, Bills, Health, Other]
+        description: Transaction category
+      notes:
+        type: string
+        description: Additional notes about the transaction
+      merchant:
+        type: string
+        description: Merchant or counterpart information
+      location:
+        type: string
+        description: Transaction location if available
+      createdAt:
+        type: string
+        format: date-time
+        description: When the transaction record was created
+      updatedAt:
+        type: string
+        format: date-time
+        description: When the transaction record was last updated
+
   AccountTransactions:
     type: object
     properties:
       accountId:
         type: string
+        description: Unique account identifier
       accountName:
         type: string
+        description: Display name of the account
+      accountType:
+        type: string
+        enum: [Checking, Savings, Credit Card]
+        description: Type of bank account
+      currentBalance:
+        type: number
+        description: Current account balance
+      currency:
+        type: string
+        default: EUR
+        description: Account currency
+      month:
+        type: string
+        format: date
+        description: Month for which transactions are retrieved (YYYY-MM)
       transactions:
         type: array
         items:
           $ref: '#/definitions/Transaction'
+        description: List of transactions for the specified period
 
   StandardResponse:
     type: object
@@ -362,3 +502,42 @@ definitions:
         type: string
       message:
         type: string
+
+  Account:
+    type: object
+    properties:
+      id:
+        type: string
+        description: Unique account identifier
+      userId:
+        type: string
+        description: ID of the user who owns this account
+      accountNumber:
+        type: string
+        description: Bank account number
+      accountName:
+        type: string
+        description: Display name of the account
+      accountType:
+        type: string
+        enum: [Checking, Savings, Credit Card]
+        description: Type of bank account
+      balance:
+        type: number
+        description: Current account balance
+      currency:
+        type: string
+        default: EUR
+        description: Account currency
+      isActive:
+        type: boolean
+        default: true
+        description: Whether the account is active
+      createdAt:
+        type: string
+        format: date-time
+        description: When the account was created
+      updatedAt:
+        type: string
+        format: date-time
+        description: When the account was last updated

@@ -19,7 +19,7 @@ const initialState = {
 
 /* THUNKS */
 
-// 1. Login thunk : Connexion + Obtention du token
+// 1. Login thunk : Connexion + Obtention du token pour 1ere connexion 
 
 export const loginUser = createAsyncThunk(
   'auth/login',
@@ -74,7 +74,7 @@ export const fetchUserProfile = createAsyncThunk(
              }
            
              const response = await fetch('http://localhost:3001/api/v1/user/profile', {
-                 method: 'GET', // Swagger dit GET
+                 method: 'GET', 
                  headers: {
                      'Authorization': `Bearer ${token}`, 
                      'Content-Type': 'application/json', 
@@ -313,11 +313,3 @@ export const { logout, clearAuthError } = authSlice.actions;
 
 
 export default authSlice.reducer;
-
-
-// 1) création du slice avec état initial
-// 2) définition des actions (Thunks) : loginUser, fetchUserProfile, updateUserProfile, signupUser
-// 3) Dispatch des actions et mis à jour des reducers avec les nouveaux états 
-    // ex : loginUser.fulfilled => state.isLoggedIn = true;
-    // ex : state.token = action.payload.token; 
-// 4) export des actions et du reducer
